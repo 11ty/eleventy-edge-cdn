@@ -54,7 +54,7 @@ import process from "https://deno.land/std@0.133.0/node/process.ts";
       js: ESM_REQUIRE_SHIM,
     },
     define: {},
-    outfile: `./dist/${pkg.version}/eleventy-edge.js`,
+    outfile: `./dist/edge@${pkg.version}/eleventy-edge.js`,
     external: [
       "chokidar",
       "fast-glob",
