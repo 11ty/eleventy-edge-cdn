@@ -211,19 +211,24 @@ export class EleventyEdge {
     };
   }
 
-  async render(data) {
+  async render() {
     let content = await this.getTemplateContent();
-
-    // TODO support data from configuration API `addGlobalData` calls
 
     // We always use liquid as the page level language, since it only controls the
     // top level `renderTemplate` shortcodes and not the content inside of them
     let fn = await this.renderManager.compile(content, "liquid");
 
     let edgeData = await this.getEdgeData();
-    let merged = Object.assign({}, data, this.buildTimeData, edgeData);
-    let rendered = await fn(merged);
-    return rendered;
+    
+    // Eleventy 2.0.0-canary.11 and higher
+    if("render" in this.renderManager) {
+      // includes `eleventyConfig.addGlobalData` data
+      return this.renderManager.render(fn, edgeData, this.buildTimeData);
+    } else {
+      let merged = Object.assign({}, this.buildTimeData, edgeData);
+      let rendered = await fn(merged);
+      return rendered;
+    }
   }
 
   async handleResponse() {
