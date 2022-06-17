@@ -84,7 +84,7 @@ export class EleventyEdge {
     let { key } = this.getContentType();
     let headers = {
       "content-type": `${key}; charset=UTF-8`,
-      "server-timing": `tmpl;dur=${Date.now() - this.startTiming}`,
+      "server-timing": `11ty;dur=${Date.now() - this.startTiming}`,
     };
 
     // Content-Length is added by the platform
@@ -172,8 +172,10 @@ export class EleventyEdge {
     // context.cookies
     // request.headers
 
-    // Warning, handling of duplicate keys is non-standard. Here they are de-duped
-    let query = Object.fromEntries(this.url.searchParams);
+    // We polyfill require in the esm header (see compile.js)
+    const querystring = require("querystring");
+    // Handling of duplicate keys is non-standard. Here they are converted to an array
+    let query = querystring.parse(this.url.searchParams.toString());
 
     let cookies = {};
     if (this.options.cookies === "*") {
@@ -238,6 +240,7 @@ export class EleventyEdge {
       return response;
     }
 
+    // alters `await this.response.text();`
     let content = await this.render();
 
     return new Response(content, {

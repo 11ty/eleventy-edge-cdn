@@ -1,9 +1,11 @@
 {
   "name": "@11ty/eleventy-edge-cdn",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "private": true,
   "description": "The site responsible for the HTTP endpoints for ESM/Deno imports",
+  "type": "module",
   "scripts": {
+    "test": "npx ava --verbose",
     "build": "node compile.js"
   },
   "keywords": [],
@@ -11,6 +13,7 @@
   "license": "ISC",
   "devDependencies": {
     "@11ty/eleventy": "2.0.0-canary.11",
+    "ava": "^4.3.0",
     "esbuild": "^0.14.39"
   }
 }

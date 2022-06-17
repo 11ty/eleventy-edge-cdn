@@ -1,10 +1,17 @@
-const esbuild = require("esbuild");
-const pkg = require("./package.json");
-const Eleventy = require("@11ty/eleventy");
-const DENO_STD_VERSION = "0.139.0";
+import { createRequire } from "module";
+import esbuild from "esbuild";
+import Eleventy from "@11ty/eleventy";
 
-// https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
-const ESM_REQUIRE_SHIM = `
+const require = createRequire(import.meta.url);
+
+const pkg = require("./package.json");
+
+const DENO_STD_VERSION = "0.144.0";
+
+(async function () {
+
+  // https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
+  const ESM_REQUIRE_SHIM = `
 // Eleventy Edge v${pkg.version} via Eleventy v${Eleventy.getVersion()}
 
 // START Eleventy Edge Node Shim for Deno
@@ -18,6 +25,7 @@ import stream from "https://deno.land/std@${DENO_STD_VERSION}/node/stream.ts";
 import perf_hooks from "https://deno.land/std@${DENO_STD_VERSION}/node/perf_hooks.ts";
 import punycode from "https://deno.land/std@${DENO_STD_VERSION}/node/punycode.ts";
 import process from "https://deno.land/std@${DENO_STD_VERSION}/node/process.ts";
+import querystring from "https://deno.land/std@${DENO_STD_VERSION}/node/querystring.ts";
 
 ;(() => {
   if (typeof globalThis.require === "undefined") {
@@ -33,6 +41,7 @@ import process from "https://deno.land/std@${DENO_STD_VERSION}/node/process.ts";
         perf_hooks,
         punycode,
         process,
+        querystring,
       };
       if(!globals[name]) {
         throw new Error("Could not find module for " + name);
@@ -45,7 +54,6 @@ import process from "https://deno.land/std@${DENO_STD_VERSION}/node/process.ts";
 // END Eleventy Edge Node Shim for Deno
 `;
 
-(async function () {
   await esbuild.build({
     entryPoints: ["./esbuild-entry-point.js"],
     format: "esm",
@@ -54,8 +62,24 @@ import process from "https://deno.land/std@${DENO_STD_VERSION}/node/process.ts";
     banner: {
       js: ESM_REQUIRE_SHIM,
     },
-    define: {},
     outfile: `./dist/edge@${pkg.version}/eleventy-edge.js`,
+    external: [
+      "chokidar",
+      "fast-glob",
+      // these use eval and won’t work in Deno
+      "ejs",
+      "haml",
+      "pug",
+    ],
+  });
+
+  // CommonJS was originally added for Node.js testing
+  await esbuild.build({
+    entryPoints: ["./esbuild-entry-point.js"],
+    format: "cjs",
+    bundle: true,
+    platform: "node",
+    outfile: `./dist/edge@${pkg.version}/eleventy-edge.cjs`,
     external: [
       "chokidar",
       "fast-glob",
