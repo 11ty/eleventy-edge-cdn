@@ -8,10 +8,8 @@ const pkg = require("./package.json");
 
 const DENO_STD_VERSION = "0.144.0";
 
-(async function () {
-
-  // https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
-  const ESM_REQUIRE_SHIM = `
+// https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
+const ESM_REQUIRE_SHIM = `
 // Eleventy Edge v${pkg.version} via Eleventy v${Eleventy.getVersion()}
 
 // START Eleventy Edge Node Shim for Deno
@@ -54,39 +52,33 @@ import querystring from "https://deno.land/std@${DENO_STD_VERSION}/node/querystr
 // END Eleventy Edge Node Shim for Deno
 `;
 
-  await esbuild.build({
+(async function () {
+  let options = {
     entryPoints: ["./esbuild-entry-point.js"],
-    format: "esm",
     bundle: true,
     platform: "node",
+    external: [
+      "chokidar",
+      "fast-glob",
+      // these use eval and won’t work in Deno
+      "ejs",
+      "haml",
+      "pug",
+    ],
+  }
+
+  // ESM
+  await esbuild.build(Object.assign({}, options, {
+    format: "esm",
     banner: {
       js: ESM_REQUIRE_SHIM,
     },
     outfile: `./dist/edge@${pkg.version}/eleventy-edge.js`,
-    external: [
-      "chokidar",
-      "fast-glob",
-      // these use eval and won’t work in Deno
-      "ejs",
-      "haml",
-      "pug",
-    ],
-  });
+  }));
 
   // CommonJS was originally added for Node.js testing
-  await esbuild.build({
-    entryPoints: ["./esbuild-entry-point.js"],
+  await esbuild.build(Object.assign({}, options, {
     format: "cjs",
-    bundle: true,
-    platform: "node",
     outfile: `./dist/edge@${pkg.version}/eleventy-edge.cjs`,
-    external: [
-      "chokidar",
-      "fast-glob",
-      // these use eval and won’t work in Deno
-      "ejs",
-      "haml",
-      "pug",
-    ],
-  });
+  }));
 })();
