@@ -6,7 +6,9 @@ const require = createRequire(import.meta.url);
 
 const pkg = require("./package.json");
 
-const DENO_STD_VERSION = "0.144.0";
+// Careful here! Newer versions throw errors in Netlify CLI
+// See https://github.com/11ty/eleventy/issues/2487
+const DENO_STD_VERSION = "0.140.0";
 
 // https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
 const ESM_REQUIRE_SHIM = `
