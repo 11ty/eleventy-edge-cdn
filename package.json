@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@11ty/eleventy": "2.0.0-canary.11",
-    "ava": "^4.3.0",
-    "esbuild": "^0.14.39"
+    "@11ty/eleventy": "2.0.0-canary.12",
+    "ava": "^4.3.1",
+    "esbuild": "^0.14.49"
   }
 }

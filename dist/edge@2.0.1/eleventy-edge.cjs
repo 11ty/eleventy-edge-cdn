@@ -344,7 +344,7 @@ var require_package = __commonJS({
   "node_modules/@11ty/eleventy/package.json"(exports, module2) {
     module2.exports = {
       name: "@11ty/eleventy",
-      version: "2.0.0-canary.11",
+      version: "2.0.0-canary.12",
       description: "Transform a directory of templates into HTML.",
       publishConfig: {
         access: "public"
@@ -439,7 +439,7 @@ var require_package = __commonJS({
       },
       dependencies: {
         "@11ty/dependency-tree": "^2.0.1",
-        "@11ty/eleventy-dev-server": "^1.0.0-canary.9",
+        "@11ty/eleventy-dev-server": "^1.0.0-canary.13",
         "@11ty/eleventy-utils": "^1.0.1",
         "@iarna/toml": "^2.2.5",
         "@sindresorhus/slugify": "^1.1.2",
@@ -3721,7 +3721,7 @@ var require_kleur = __commonJS({
     var TERM;
     var isTTY = true;
     if (typeof process !== "undefined") {
-      ({ FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } = process.env);
+      ({ FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } = process.env || {});
       isTTY = process.stdout && process.stdout.isTTY;
     }
     var $ = {
@@ -6603,7 +6603,7 @@ var require_luxon = __commonJS({
       return [{}, zone, cursor + 1];
     }
     var isoTimeOnly = RegExp(`^T?${isoTimeBaseRegex.source}$`);
-    var isoDuration = /^-?P(?:(?:(-?\d{1,9}(?:\.\d{1,9})?)Y)?(?:(-?\d{1,9}(?:\.\d{1,9})?)M)?(?:(-?\d{1,9}(?:\.\d{1,9})?)W)?(?:(-?\d{1,9}(?:\.\d{1,9})?)D)?(?:T(?:(-?\d{1,9}(?:\.\d{1,9})?)H)?(?:(-?\d{1,9}(?:\.\d{1,9})?)M)?(?:(-?\d{1,20})(?:[.,](-?\d{1,9}))?S)?)?)$/;
+    var isoDuration = /^-?P(?:(?:(-?\d{1,20}(?:\.\d{1,20})?)Y)?(?:(-?\d{1,20}(?:\.\d{1,20})?)M)?(?:(-?\d{1,20}(?:\.\d{1,20})?)W)?(?:(-?\d{1,20}(?:\.\d{1,20})?)D)?(?:T(?:(-?\d{1,20}(?:\.\d{1,20})?)H)?(?:(-?\d{1,20}(?:\.\d{1,20})?)M)?(?:(-?\d{1,20})(?:[.,](-?\d{1,20}))?S)?)?)$/;
     function extractISODuration(match2) {
       const [s2, yearStr, monthStr, weekStr, dayStr, hourStr, minuteStr, secondStr, millisecondsStr] = match2;
       const hasNegativePrefix = s2[0] === "-";
@@ -6663,7 +6663,7 @@ var require_luxon = __commonJS({
       return s2.replace(/\([^)]*\)|[\n\t]/g, " ").replace(/(\s\s+)/g, " ").trim();
     }
     var rfc1123 = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), (\d\d) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4}) (\d\d):(\d\d):(\d\d) GMT$/;
-    var rfc850 = /^(Monday|Tuesday|Wedsday|Thursday|Friday|Saturday|Sunday), (\d\d)-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d\d) (\d\d):(\d\d):(\d\d) GMT$/;
+    var rfc850 = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), (\d\d)-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d\d) (\d\d):(\d\d):(\d\d) GMT$/;
     var ascii = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) ( \d|\d\d) (\d\d):(\d\d):(\d\d) (\d{4})$/;
     function extractRFC1123Or850(match2) {
       const [, weekdayStr, dayStr, monthStr, yearStr, hourStr, minuteStr, secondStr] = match2, result = fromStrings(weekdayStr, yearStr, monthStr, dayStr, hourStr, minuteStr, secondStr);
@@ -9245,7 +9245,7 @@ var require_luxon = __commonJS({
         throw new InvalidArgumentError(`Unknown datetime argument: ${dateTimeish}, of type ${typeof dateTimeish}`);
       }
     }
-    var VERSION = "2.4.0";
+    var VERSION = "2.5.0";
     exports.DateTime = DateTime;
     exports.Duration = Duration;
     exports.FixedOffsetZone = FixedOffsetZone;
@@ -9277,9 +9277,9 @@ var require_AsyncEventEmitter = __commonJS({
   }
 });
 
-// node_modules/ms/index.js
+// node_modules/debug/node_modules/ms/index.js
 var require_ms = __commonJS({
-  "node_modules/ms/index.js"(exports, module2) {
+  "node_modules/debug/node_modules/ms/index.js"(exports, module2) {
     var s = 1e3;
     var m = s * 60;
     var h = m * 60;
@@ -10353,6 +10353,8 @@ var require_UserConfig = __commonJS({
         this._pluginExecution = false;
         this.useTemplateCache = true;
         this.dataFilterSelectors = /* @__PURE__ */ new Set();
+        this.libraryAmendments = {};
+        this.serverPassthroughCopyBehavior = "passthrough";
       }
       versionCheck(expected) {
         if (!semver.satisfies(pkg.version, expected, {
@@ -10524,11 +10526,13 @@ var require_UserConfig = __commonJS({
           this.activeNamespace = "";
         }
       }
-      addPassthroughCopy(fileOrDir) {
+      addPassthroughCopy(fileOrDir, copyOptions = {}) {
         if (typeof fileOrDir === "string") {
-          this.passthroughCopies[fileOrDir] = true;
+          this.passthroughCopies[fileOrDir] = { outputPath: true, copyOptions };
         } else {
-          Object.assign(this.passthroughCopies, fileOrDir);
+          for (let [inputPath, outputPath] of Object.entries(fileOrDir)) {
+            this.passthroughCopies[inputPath] = { outputPath, copyOptions };
+          }
         }
         return this;
       }
@@ -10554,6 +10558,13 @@ var require_UserConfig = __commonJS({
           debug("WARNING: using `eleventyConfig.setLibrary` will override any configuration set using `.setNunjucksEnvironmentOptions` via the config API. You\u2019ll need to pass these options to the library yourself.");
         }
         this.libraryOverrides[engineName.toLowerCase()] = libraryInstance;
+      }
+      amendLibrary(engineName, callback) {
+        let name = engineName.toLowerCase();
+        if (!this.libraryAmendments[name]) {
+          this.libraryAmendments[name] = [];
+        }
+        this.libraryAmendments[name].push(callback);
       }
       setPugOptions(options) {
         this.pugOptions = options;
@@ -10738,6 +10749,9 @@ var require_UserConfig = __commonJS({
       setPrecompiledCollections(collections) {
         this.precompiledCollections = collections;
       }
+      setServerPassthroughCopyBehavior(behavior) {
+        this.serverPassthroughCopyBehavior = behavior;
+      }
       getMergingConfigObject() {
         return {
           templateFormats: this.templateFormats,
@@ -10788,7 +10802,9 @@ var require_UserConfig = __commonJS({
           plugins: this.plugins,
           useTemplateCache: this.useTemplateCache,
           precompiledCollections: this.precompiledCollections,
-          dataFilterSelectors: this.dataFilterSelectors
+          dataFilterSelectors: this.dataFilterSelectors,
+          libraryAmendments: this.libraryAmendments,
+          serverPassthroughCopyBehavior: this.serverPassthroughCopyBehavior
         };
       }
     };
@@ -12817,6 +12833,9 @@ var require_TemplateEngine = __commonJS({
       }
       setEngineLib(engineLib) {
         this.engineLib = engineLib;
+        for (let amendment of this.config.libraryAmendments[this.name] || []) {
+          amendment(engineLib);
+        }
       }
       getEngineLib() {
         return this.engineLib;
@@ -17786,6 +17805,7 @@ var require_Markdown = __commonJS({
             highlight: this.config.markdownHighlighter
           });
         }
+        this.mdLib.disable("code");
         this.setEngineLib(this.mdLib);
       }
       setMarkdownOptions(options) {
@@ -30232,7 +30252,7 @@ var require_EleventyErrorUtil = __commonJS({
         return EleventyErrorUtil2.prefix + JSON.stringify({ message: error.message, stack: error.stack }) + EleventyErrorUtil2.suffix;
       }
       static isPrematureTemplateContentError(e) {
-        return e instanceof TemplateContentPrematureUseError || e.originalError && (e.originalError.name === "RenderError" || e.originalError.name === "UndefinedVariableError") && e.originalError.originalError instanceof TemplateContentPrematureUseError || e.message.indexOf("TemplateContentPrematureUseError") > -1;
+        return e instanceof TemplateContentPrematureUseError || e.originalError && (e.originalError.name === "RenderError" || e.originalError.name === "UndefinedVariableError") && e.originalError.originalError instanceof TemplateContentPrematureUseError || (e.message || "").indexOf("TemplateContentPrematureUseError") > -1;
       }
     };
     module2.exports = EleventyErrorUtil2;
@@ -31238,9 +31258,6 @@ var require_liquid_node_cjs = __commonJS({
     var Drop = function() {
       function Drop2() {
       }
-      Drop2.prototype.valueOf = function() {
-        return void 0;
-      };
       Drop2.prototype.liquidMethodMissing = function(key) {
         return void 0;
       };
@@ -31254,6 +31271,12 @@ var require_liquid_node_cjs = __commonJS({
     }
     function isFunction(value) {
       return typeof value === "function";
+    }
+    function isPromise(val) {
+      return val && isFunction(val.then);
+    }
+    function isIterator(val) {
+      return val && isFunction(val.next) && isFunction(val.throw) && isFunction(val.return);
     }
     function escapeRegex(str) {
       return str.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
@@ -31272,7 +31295,7 @@ var require_liquid_node_cjs = __commonJS({
       };
     }
     function stringify(value) {
-      value = toValue$1(value);
+      value = toValue(value);
       if (isString(value))
         return value;
       if (isNil(value))
@@ -31283,8 +31306,8 @@ var require_liquid_node_cjs = __commonJS({
         }).join("");
       return String(value);
     }
-    function toValue$1(value) {
-      return value instanceof Drop ? value.valueOf() : value;
+    function toValue(value) {
+      return value instanceof Drop && isFunction(value.valueOf) ? value.valueOf() : value;
     }
     function isNumber(value) {
       return typeof value === "number";
@@ -31299,6 +31322,9 @@ var require_liquid_node_cjs = __commonJS({
     }
     function isArray(value) {
       return toString$1.call(value) === "[object Array]";
+    }
+    function isIterable(value) {
+      return isObject(value) && Symbol.iterator in value;
     }
     function forOwn(obj, iteratee) {
       obj = obj || {};
@@ -31388,7 +31414,7 @@ var require_liquid_node_cjs = __commonJS({
         for (var _i = 0; _i < arguments.length; _i++) {
           args[_i] = arguments[_i];
         }
-        return fn.apply(void 0, __spreadArray([], __read(args.map(toValue$1)), false));
+        return fn.apply(void 0, __spreadArray([], __read(args.map(toValue)), false));
       };
     }
     function escapeRegExp(text) {
@@ -31532,7 +31558,7 @@ var require_liquid_node_cjs = __commonJS({
       if (ctx.opts.jsTruthy) {
         return !val;
       } else {
-        return val === false || val === void 0 || val === null;
+        return val === false || void 0 === val || val === null;
       }
     }
     var defaultOperators = {
@@ -31579,8 +31605,8 @@ var require_liquid_node_cjs = __commonJS({
         return l <= r;
       },
       "contains": function(l, r) {
-        l = toValue$1(l);
-        r = toValue$1(r);
+        l = toValue(l);
+        r = toValue(r);
         return l && isFunction(l.indexOf) ? l.indexOf(r) > -1 : false;
       },
       "and": function(l, r, ctx) {
@@ -31686,14 +31712,14 @@ var require_liquid_node_cjs = __commonJS({
       if (arg === void 0) {
         arg = 0;
       }
-      v = toValue$1(v);
-      arg = toValue$1(arg);
+      v = toValue(v);
+      arg = toValue(arg);
       var amp = Math.pow(10, arg);
       return Math.round(v * amp) / amp;
     }
     function plus(v, arg) {
-      v = toValue$1(v);
-      arg = toValue$1(arg);
+      v = toValue(v);
+      arg = toValue(arg);
       return Number(v) + Number(arg);
     }
     var urlDecode = function(x) {
@@ -31703,10 +31729,13 @@ var require_liquid_node_cjs = __commonJS({
       return stringify(x).split(" ").map(encodeURIComponent).join("+");
     };
     function toEnumerable(val) {
+      val = toValue(val);
       if (isArray(val))
         return val;
       if (isString(val) && val.length > 0)
         return [val];
+      if (isIterable(val))
+        return Array.from(val);
       if (isObject(val))
         return Object.keys(val).map(function(key) {
           return [key, val[key]];
@@ -31734,7 +31763,7 @@ var require_liquid_node_cjs = __commonJS({
     });
     function sort(arr, property) {
       var _this = this;
-      arr = toValue$1(arr);
+      arr = toValue(arr);
       var getValue = function(obj) {
         return property ? _this.context.getFromScope(obj, stringify(property).split(".")) : obj;
       };
@@ -31745,7 +31774,7 @@ var require_liquid_node_cjs = __commonJS({
       });
     }
     function sortNatural(input, property) {
-      input = toValue$1(input);
+      input = toValue(input);
       var propertyString = stringify(property);
       var compare = property === void 0 ? caseInsensitiveCompare : function(lhs, rhs) {
         return caseInsensitiveCompare(lhs[propertyString], rhs[propertyString]);
@@ -31757,24 +31786,24 @@ var require_liquid_node_cjs = __commonJS({
     };
     function map(arr, property) {
       var _this = this;
-      arr = toValue$1(arr);
+      arr = toValue(arr);
       return toArray(arr).map(function(obj) {
         return _this.context.getFromScope(obj, stringify(property).split("."));
       });
     }
     function compact(arr) {
-      arr = toValue$1(arr);
+      arr = toValue(arr);
       return toArray(arr).filter(function(x) {
-        return !isNil(toValue$1(x));
+        return !isNil(toValue(x));
       });
     }
     function concat(v, arg) {
       if (arg === void 0) {
         arg = [];
       }
-      v = toValue$1(v);
+      v = toValue(v);
       arg = toArray(arg).map(function(v2) {
-        return toValue$1(v2);
+        return toValue(v2);
       });
       return toArray(v).concat(arg);
     }
@@ -31782,7 +31811,7 @@ var require_liquid_node_cjs = __commonJS({
       if (length === void 0) {
         length = 1;
       }
-      v = toValue$1(v);
+      v = toValue(v);
       if (isNil(v))
         return [];
       if (!isArray(v))
@@ -31792,7 +31821,7 @@ var require_liquid_node_cjs = __commonJS({
     }
     function where(arr, property, expected) {
       var _this = this;
-      arr = toValue$1(arr);
+      arr = toValue(arr);
       return toArray(arr).filter(function(obj) {
         var value = _this.context.getFromScope(obj, stringify(property).split("."));
         if (expected === void 0)
@@ -31803,7 +31832,7 @@ var require_liquid_node_cjs = __commonJS({
       });
     }
     function uniq(arr) {
-      arr = toValue$1(arr);
+      arr = toValue(arr);
       var u = {};
       return (arr || []).filter(function(val) {
         if (hasOwnProperty.call(u, String(val)))
@@ -32130,7 +32159,7 @@ var require_liquid_node_cjs = __commonJS({
     function date(v, arg) {
       var opts = this.context.opts;
       var date2;
-      v = toValue$1(v);
+      v = toValue(v);
       arg = stringify(arg);
       if (v === "now" || v === "today") {
         date2 = new Date();
@@ -32162,7 +32191,7 @@ var require_liquid_node_cjs = __commonJS({
       for (var _i = 2; _i < arguments.length; _i++) {
         args[_i - 2] = arguments[_i];
       }
-      value = toValue$1(value);
+      value = toValue(value);
       if (isArray(value) || isString(value))
         return value.length ? value : defaultValue;
       if (value === false && new Map(args).get("allow_false"))
@@ -32492,7 +32521,7 @@ var require_liquid_node_cjs = __commonJS({
         return _super !== null && _super.apply(this, arguments) || this;
       }
       NullDrop2.prototype.equals = function(value) {
-        return isNil(toValue$1(value));
+        return isNil(toValue(value));
       };
       NullDrop2.prototype.gt = function() {
         return false;
@@ -32519,7 +32548,7 @@ var require_liquid_node_cjs = __commonJS({
       EmptyDrop2.prototype.equals = function(value) {
         if (value instanceof EmptyDrop2)
           return false;
-        value = toValue$1(value);
+        value = toValue(value);
         if (isString(value) || isArray(value))
           return value.length === 0;
         if (isObject(value))
@@ -32551,7 +32580,7 @@ var require_liquid_node_cjs = __commonJS({
       BlankDrop2.prototype.equals = function(value) {
         if (value === false)
           return true;
-        if (isNil(toValue$1(value)))
+        if (isNil(toValue(value)))
           return true;
         if (isString(value))
           return /^\s*$/.test(value);
@@ -32631,40 +32660,38 @@ var require_liquid_node_cjs = __commonJS({
               operands = [];
               _f.label = 1;
             case 1:
-              _f.trys.push([1, 9, 10, 11]);
+              _f.trys.push([1, 8, 9, 10]);
               _a = __values(this.postfix), _b = _a.next();
               _f.label = 2;
             case 2:
               if (!!_b.done)
-                return [3, 8];
+                return [3, 7];
               token = _b.value;
               if (!isOperatorToken(token))
-                return [3, 5];
-              return [4, operands.pop()];
+                return [3, 4];
+              r = operands.pop();
+              l = operands.pop();
+              return [4, evalOperatorToken(ctx.opts.operators, token, l, r, ctx)];
             case 3:
-              r = _f.sent();
-              return [4, operands.pop()];
-            case 4:
-              l = _f.sent();
-              result = evalOperatorToken(ctx.opts.operators, token, l, r, ctx);
+              result = _f.sent();
               operands.push(result);
-              return [3, 7];
-            case 5:
+              return [3, 6];
+            case 4:
               _d = (_c = operands).push;
               return [4, evalToken(token, ctx, lenient && this.postfix.length === 1)];
-            case 6:
+            case 5:
               _d.apply(_c, [_f.sent()]);
-              _f.label = 7;
-            case 7:
+              _f.label = 6;
+            case 6:
               _b = _a.next();
               return [3, 2];
+            case 7:
+              return [3, 10];
             case 8:
-              return [3, 11];
-            case 9:
               e_1_1 = _f.sent();
               e_1 = { error: e_1_1 };
-              return [3, 11];
-            case 10:
+              return [3, 10];
+            case 9:
               try {
                 if (_b && !_b.done && (_e = _a.return))
                   _e.call(_a);
@@ -32673,7 +32700,7 @@ var require_liquid_node_cjs = __commonJS({
                   throw e_1.error;
               }
               return [7];
-            case 11:
+            case 10:
               return [2, operands[0]];
           }
         });
@@ -33064,7 +33091,7 @@ var require_liquid_node_cjs = __commonJS({
           _this.args = "";
         } else {
           var tokenizer = new Tokenizer(_this.content, options.operatorsTrie);
-          _this.name = tokenizer.readIdentifier().getText();
+          _this.name = tokenizer.readTagName();
           if (!_this.name)
             throw new TokenizationError("illegal liquid tag syntax", _this);
           tokenizer.skipBlank();
@@ -33294,8 +33321,7 @@ var require_liquid_node_cjs = __commonJS({
         var end = this.N;
         if (this.readToDelimiter("\n") !== -1)
           end = this.p;
-        var token = new LiquidTagToken(input, begin, end, options, file);
-        return token;
+        return new LiquidTagToken(input, begin, end, options, file);
       };
       Tokenizer2.prototype.mkError = function(msg, begin) {
         return new TokenizationError(msg, new IdentifierToken(this.input, begin, this.N, this.file));
@@ -33316,6 +33342,12 @@ var require_liquid_node_cjs = __commonJS({
         while (this.peekType() & IDENTIFIER)
           ++this.p;
         return new IdentifierToken(this.input, begin, this.p, this.file);
+      };
+      Tokenizer2.prototype.readTagName = function() {
+        this.skipBlank();
+        if (this.input[this.p] === "#")
+          return this.input.slice(this.p, ++this.p);
+        return this.readIdentifier().getText();
       };
       Tokenizer2.prototype.readHashes = function(jekyllStyle) {
         var hashes = [];
@@ -33506,7 +33538,7 @@ var require_liquid_node_cjs = __commonJS({
         var value = input.slice(begin + tagDelimiterLeft.length, end - tagDelimiterRight.length);
         _this = _super.call(this, exports.TokenKind.Tag, value, input, begin, end, trimTagLeft, trimTagRight, file) || this;
         var tokenizer = new Tokenizer(_this.content, options.operatorsTrie);
-        _this.name = tokenizer.readIdentifier().getText();
+        _this.name = tokenizer.readTagName();
         if (!_this.name)
           throw new TokenizationError("illegal tag syntax", _this);
         tokenizer.skipBlank();
@@ -33723,77 +33755,73 @@ var require_liquid_node_cjs = __commonJS({
       };
       return Value2;
     }();
-    function createResolvedThenable(value) {
-      var ret = {
-        then: function(resolve2) {
-          return resolve2(value);
-        },
-        catch: function() {
-          return ret;
-        }
-      };
-      return ret;
-    }
-    function createRejectedThenable(err) {
-      var ret = {
-        then: function(resolve2, reject) {
-          if (reject)
-            return reject(err);
-          return ret;
-        },
-        catch: function(reject) {
-          return reject(err);
-        }
-      };
-      return ret;
-    }
-    function isThenable(val) {
-      return val && isFunction(val.then);
-    }
-    function isAsyncIterator(val) {
-      return val && isFunction(val.next) && isFunction(val.throw) && isFunction(val.return);
-    }
-    function toThenable(val) {
-      if (isThenable(val))
-        return val;
-      if (isAsyncIterator(val))
-        return reduce();
-      return createResolvedThenable(val);
-      function reduce(prev) {
-        var state;
-        try {
-          state = val.next(prev);
-        } catch (err) {
-          return createRejectedThenable(err);
-        }
-        if (state.done)
-          return createResolvedThenable(state.value);
-        return toThenable(state.value).then(reduce, function(err) {
-          var state2;
-          try {
-            state2 = val.throw(err);
-          } catch (e) {
-            return createRejectedThenable(e);
-          }
-          if (state2.done)
-            return createResolvedThenable(state2.value);
-          return reduce(state2.value);
-        });
-      }
-    }
     function toPromise(val) {
-      return Promise.resolve(toThenable(val));
-    }
-    function toValue(val) {
-      var ret;
-      toThenable(val).then(function(x) {
-        ret = x;
-        return createResolvedThenable(ret);
-      }).catch(function(err) {
-        throw err;
+      return __awaiter(this, void 0, void 0, function() {
+        var value, done, next, state, err_1;
+        return __generator(this, function(_a) {
+          switch (_a.label) {
+            case 0:
+              if (!isIterator(val))
+                return [2, val];
+              done = false;
+              next = "next";
+              _a.label = 1;
+            case 1:
+              state = val[next](value);
+              done = state.done;
+              value = state.value;
+              next = "next";
+              _a.label = 2;
+            case 2:
+              _a.trys.push([2, 5, , 6]);
+              if (isIterator(value))
+                value = toPromise(value);
+              if (!isPromise(value))
+                return [3, 4];
+              return [4, value];
+            case 3:
+              value = _a.sent();
+              _a.label = 4;
+            case 4:
+              return [3, 6];
+            case 5:
+              err_1 = _a.sent();
+              next = "throw";
+              value = err_1;
+              return [3, 6];
+            case 6:
+              if (!done)
+                return [3, 1];
+              _a.label = 7;
+            case 7:
+              return [2, value];
+          }
+        });
       });
-      return ret;
     }
+    function toValueSync(val) {
+      if (!isIterator(val))
+        return val;
+      var value;
+      var done = false;
+      var next = "next";
+      do {
+        var state = val[next](value);
+        done = state.done;
+        value = state.value;
+        next = "next";
+        if (isIterator(value)) {
+          try {
+            value = toValueSync(value);
+          } catch (err) {
+            next = "throw";
+            value = err;
+          }
+        }
+      } while (!done);
+      return value;
+    }
+    var toThenable = toPromise;
     var assign = {
       parse: function(token) {
         var tokenizer = new Tokenizer(token.args, this.liquid.options.operatorsTrie);
@@ -33803,7 +33831,7 @@ var require_liquid_node_cjs = __commonJS({
           return "illegal token ".concat(token.getText());
         });
         tokenizer.advance();
-        this.value = tokenizer.remaining();
+        this.value = new Value(tokenizer.remaining(), this.liquid);
       },
       render: function(ctx) {
         var _a, _b;
@@ -33812,7 +33840,7 @@ var require_liquid_node_cjs = __commonJS({
             case 0:
               _a = ctx.bottom();
               _b = this.key;
-              return [4, this.liquid._evalValue(this.value, ctx)];
+              return [4, this.value.value(ctx, this.liquid.options.lenientIf)];
             case 1:
               _a[_b] = _c.sent();
               return [2];
@@ -34057,7 +34085,7 @@ var require_liquid_node_cjs = __commonJS({
           switch (_e.label) {
             case 0:
               r = this.liquid.renderer;
-              _a = toValue$1;
+              _a = toValue;
               return [4, this.cond.value(ctx, ctx.opts.lenientIf)];
             case 1:
               cond = _a.apply(void 0, [_e.sent()]);
@@ -34850,6 +34878,13 @@ var require_liquid_node_cjs = __commonJS({
         });
       }
     };
+    var inlineComment = {
+      parse: function(tagToken, remainTokens) {
+        if (tagToken.args.search(/\n\s*[^#\s]/g) !== -1) {
+          throw new Error("every line of an inline comment must start with a '#' character");
+        }
+      }
+    };
     var tags = {
       assign,
       "for": For,
@@ -34870,7 +34905,8 @@ var require_liquid_node_cjs = __commonJS({
       "break": Break,
       "continue": Continue,
       echo,
-      liquid
+      liquid,
+      "#": inlineComment
     };
     var index = /* @__PURE__ */ Object.freeze({
       __proto__: null,
@@ -35300,7 +35336,7 @@ var require_liquid_node_cjs = __commonJS({
         this.buffer = "";
       }
       KeepingTypeEmitter2.prototype.write = function(html) {
-        html = toValue$1(html);
+        html = toValue(html);
         if (typeof html !== "string" && this.buffer === "") {
           this.buffer = html;
         } else {
@@ -35316,7 +35352,7 @@ var require_liquid_node_cjs = __commonJS({
         var _this = this;
         var emitter = new StreamedEmitter();
         Promise.resolve().then(function() {
-          return toThenable(_this.renderTemplates(templates, ctx, emitter));
+          return toPromise(_this.renderTemplates(templates, ctx, emitter));
         }).then(function() {
           return emitter.end();
         }, function(err) {
@@ -35509,33 +35545,45 @@ var require_liquid_node_cjs = __commonJS({
         });
       };
       Parser2.prototype._parseFileCached = function(file, sync, type, currentFile) {
-        var key, tpls, task;
+        var cache, key, tpls, task, taskOrTpl, _a, err_1;
         if (type === void 0) {
           type = LookupType.Root;
         }
-        return __generator(this, function(_a) {
-          switch (_a.label) {
+        return __generator(this, function(_b) {
+          switch (_b.label) {
             case 0:
+              cache = this.cache;
               key = this.loader.shouldLoadRelative(file) ? currentFile + "," + file : type + ":" + file;
-              return [4, this.cache.read(key)];
+              return [4, cache.read(key)];
             case 1:
-              tpls = _a.sent();
+              tpls = _b.sent();
               if (tpls)
                 return [2, tpls];
-              task = toThenable(this._parseFile(file, sync, type, currentFile));
-              this.cache.write(key, task);
-              _a.label = 2;
-            case 2:
-              _a.trys.push([2, 4, , 5]);
+              task = this._parseFile(file, sync, type, currentFile);
+              if (!sync)
+                return [3, 3];
               return [4, task];
+            case 2:
+              _a = _b.sent();
+              return [3, 4];
             case 3:
-              return [2, _a.sent()];
+              _a = toPromise(task);
+              _b.label = 4;
             case 4:
-              _a.sent();
-              this.cache.remove(key);
-              return [3, 5];
+              taskOrTpl = _a;
+              cache.write(key, taskOrTpl);
+              _b.label = 5;
             case 5:
-              return [2, []];
+              _b.trys.push([5, 7, , 8]);
+              return [4, taskOrTpl];
+            case 6:
+              return [2, _b.sent()];
+            case 7:
+              err_1 = _b.sent();
+              cache.remove(key);
+              throw err_1;
+            case 8:
+              return [2];
           }
         });
       };
@@ -35604,7 +35652,7 @@ var require_liquid_node_cjs = __commonJS({
       };
       return FilterMap2;
     }();
-    var version = "9.37.0";
+    var version = "9.39.1";
     var Liquid = function() {
       function Liquid2(opts) {
         var _this = this;
@@ -35638,7 +35686,7 @@ var require_liquid_node_cjs = __commonJS({
         });
       };
       Liquid2.prototype.renderSync = function(tpl, scope, renderOptions) {
-        return toValue(this._render(tpl, scope, __assign(__assign({}, renderOptions), { sync: true })));
+        return toValueSync(this._render(tpl, scope, __assign(__assign({}, renderOptions), { sync: true })));
       };
       Liquid2.prototype.renderToNodeStream = function(tpl, scope, renderOptions) {
         if (renderOptions === void 0) {
@@ -35659,7 +35707,7 @@ var require_liquid_node_cjs = __commonJS({
         });
       };
       Liquid2.prototype.parseAndRenderSync = function(html, scope, renderOptions) {
-        return toValue(this._parseAndRender(html, scope, __assign(__assign({}, renderOptions), { sync: true })));
+        return toValueSync(this._parseAndRender(html, scope, __assign(__assign({}, renderOptions), { sync: true })));
       };
       Liquid2.prototype._parsePartialFile = function(file, sync, currentFile) {
         return this.parser.parseFile(file, sync, LookupType.Partials, currentFile);
@@ -35675,7 +35723,7 @@ var require_liquid_node_cjs = __commonJS({
         });
       };
       Liquid2.prototype.parseFileSync = function(file) {
-        return toValue(this.parser.parseFile(file, true));
+        return toValueSync(this.parser.parseFile(file, true));
       };
       Liquid2.prototype.renderFile = function(file, ctx, renderOptions) {
         return __awaiter(this, void 0, void 0, function() {
@@ -35721,7 +35769,7 @@ var require_liquid_node_cjs = __commonJS({
         });
       };
       Liquid2.prototype.evalValueSync = function(str, ctx) {
-        return toValue(this._evalValue(str, ctx));
+        return toValueSync(this._evalValue(str, ctx));
       };
       Liquid2.prototype.registerFilter = function(name, filter) {
         this.filters.set(name, filter);
@@ -35781,7 +35829,7 @@ var require_liquid_node_cjs = __commonJS({
     exports.tags = index;
     exports.toPromise = toPromise;
     exports.toThenable = toThenable;
-    exports.toValue = toValue$1;
+    exports.toValue = toValue;
     exports.version = version;
   }
 });
